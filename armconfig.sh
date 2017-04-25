@@ -44,8 +44,8 @@ echo az login --service-principal -u $ARM_SP_DISPLAY_NAME -p $ARM_CLIENT_SECRET 
 
 # Terraform file
 echo
-echo Writing demo_temp.tf:
-cat > demo_temp.tf <<EOF
+echo Writing armcred.tf:
+cat > armcred.tf <<EOF
 # Configure the Microsoft Azure Provider
 # Service Principal Display Name: $ARM_SP_DISPLAY_NAME
 provider "azurerm" {
@@ -55,9 +55,9 @@ provider "azurerm" {
   client_secret   = "$ARM_CLIENT_SECRET"
 }
 EOF
-cat demo_temp.tf
+cat armcred.tf
 
 # How to delete the service principal
 echo
-echo Command to delete the service principal:
+echo If you want to delete the service principal:
 echo az ad app delete --id $ARM_CLIENT_ID
