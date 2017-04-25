@@ -99,12 +99,12 @@ resource "azurerm_subnet" "terra_subnet" {
 }
 
 # Public IP (will be associated to Azure Load Balancer)
-resource "azurerm_public_ip" "terra_publicip" {
-  name                         = "publicip-demo"
+resource "azurerm_public_ip" "terra_pip" {
+  name                         = "pip-demo"
   location                     = "${var.Location}"
   resource_group_name          = "${azurerm_resource_group.terra_rg.name}"
   public_ip_address_allocation = "static"
-  domain_name_label            = "publicipvmlinuxcustomscript"
+  domain_name_label            = "${var.RGName}-87163"
 }
 
 # NIC for Linux VM
@@ -139,7 +139,7 @@ resource "azurerm_lb" "terra_lb" {
 
   frontend_ip_configuration {
     name                 = "lb-pip-demo"
-    public_ip_address_id = "${azurerm_public_ip.terra_publicip.id}"
+    public_ip_address_id = "${azurerm_public_ip.terra_pip.id}"
   }
 }
 
@@ -200,9 +200,7 @@ resource "azurerm_virtual_machine" "terra_vm1" {
   }
 }
 
-# Create Azure VM Extension for CustomScript
-# Creation d une Azure VM Extension de type CustomScript
-# More info: https://www.terraform.io/docs/providers/azurerm/r/virtual_machine_extension.html
+# VM Extension for CustomScript
 resource "azurerm_virtual_machine_extension" "terra_customscript1" {
   name                 = "Extension-CustomScript"
   location             = "${var.Location}"
@@ -214,7 +212,7 @@ resource "azurerm_virtual_machine_extension" "terra_customscript1" {
 
   settings = <<SETTINGS
     {
-        "fileUris": [ "https://raw.githubusercontent.com/pascals-msft/terraform-arm/master/deploy.sh" ],
+        "fileUris": [ "https://raw.githubusercontent.com/pascals-msft/terraform-arm/master/demo1/deploy.sh" ],
         "commandToExecute": "bash deploy.sh"
     }
 SETTINGS
