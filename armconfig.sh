@@ -1,5 +1,7 @@
-# Create a Service Principal in AAD, to use with Terraform
-
+# Creates a Service Principal in AAD, to use with Terraform
+#
+# Output: armcred.tf with the azurerm provider configuration
+#
 # Prerequisites:
 # install jq:
 #   sudo apt install jq
@@ -46,7 +48,8 @@ echo az login --service-principal -u $ARM_SP_DISPLAY_NAME -p $ARM_CLIENT_SECRET 
 echo
 echo Writing armcred.tf:
 cat > armcred.tf <<EOF
-# Configure the Microsoft Azure Provider
+# armcred.tf
+# Configure the Microsoft Azure RM Provider
 # Service Principal Display Name: $ARM_SP_DISPLAY_NAME
 provider "azurerm" {
   subscription_id = "$ARM_SUBSCRIPTION_ID"
