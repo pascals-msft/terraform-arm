@@ -6,7 +6,7 @@
 # install jq:
 #   sudo apt install jq
 # install Azure CLI 2.0:
-#   curl -L https://aka.ms/InstallAzureCli | bash
+#   https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 # login:
 #   az login
 #   az account set --subscription <subscription name>
