@@ -3,43 +3,38 @@
 # Output: armcred.tf with the azurerm provider configuration
 #
 # Prerequisites:
-# install jq:
-#   sudo apt install jq
 # install Azure CLI 2.0:
 #   https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 # login:
 #   az login
+# choose subscription:
 #   az account set --subscription <subscription name>
 
 # Get subscription id and tenant id
 echo
-echo az account show...
-ARM_ACCOUNT=$(az account show --output json)
-echo ARM_ACCOUNT=$ARM_ACCOUNT
-ARM_SUBSCRIPTION_ID=$(echo $ARM_ACCOUNT | jq -r .id)
-ARM_TENANT_ID=$(echo $ARM_ACCOUNT | jq -r .tenantId)
+echo Subscription id and tenant id...
+ACCOUNT_TSV=$(az account show --output tsv)
+# fields: environmentName, id, isDefault, name, state, tenandId
+ARM_SUBSCRIPTION_ID=$(echo $ACCOUNT_TSV | cut -d ' ' -f 2)
+ARM_TENANT_ID=$(echo $ACCOUNT_TSV | cut -d ' ' -f 6)
+echo ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+echo ARM_TENANT_ID=$ARM_TENANT_ID
 
 # Create the app, service principal and role assignment
 echo
-echo az ad sp create-for-rbac...
-ARM_SERVICE_PRINCIPAL=$(az ad sp create-for-rbac --role Contributor --scopes /subscriptions/$ARM_SUBSCRIPTION_ID --out json)
-echo ARM_SERVICE_PRINCIPAL=$ARM_SERVICE_PRINCIPAL
-
-# Example:
-# {
-#   "appId": "4f6525e2-9bee-4de0-90e2-be5121d5e060",
-#   "displayName": "azure-cli-2017-04-24-16-47-01",
-#   "name": "http://azure-cli-2017-04-24-16-47-01",
-#   "password": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-#   "tenant": "72f988bf-86f1-41af-91ab-2d7cd011db47"
-# }
-
-ARM_CLIENT_ID=$(echo $ARM_SERVICE_PRINCIPAL | jq -r .appId)
-ARM_SP_DISPLAY_NAME=$(echo $ARM_SERVICE_PRINCIPAL | jq -r .displayName)
-ARM_CLIENT_SECRET=$(echo $ARM_SERVICE_PRINCIPAL | jq -r .password)
+echo Create the app, service principal and role assignment...
+SP_TSV=$(az ad sp create-for-rbac --role Contributor --scopes /subscriptions/$ARM_SUBSCRIPTION_ID -o tsv)
+# fields: AppId, DisplayName, Name, Password, TenantID
+ARM_CLIENT_ID=$(echo $SP_TSV | cut -d ' ' -f 1)
+ARM_SP_DISPLAY_NAME=$(echo $SP_TSV | cut -d ' ' -f 2)
+ARM_SP_NAME=$(echo $SP_TSV | cut -d ' ' -f 3)
+ARM_CLIENT_SECRET=$(echo $SP_TSV | cut -d ' '  -f 4)
+echo ARM_CLIENT_ID=$ARM_CLIENT_ID
+echo ARM_SP_DISPLAY_NAME=$ARM_SP_DISPLAY_NAME
+echo ARM_SP_NAME=$ARM_SP_NAME
+echo ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET
 
 # test login
-
 echo
 echo Command to try the service principal:
 echo az login --service-principal -u $ARM_SP_DISPLAY_NAME -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
@@ -47,10 +42,13 @@ echo az login --service-principal -u $ARM_SP_DISPLAY_NAME -p $ARM_CLIENT_SECRET 
 # Terraform file
 echo
 echo Writing armcred.tf:
-cat > armcred.tf <<EOF
+tee armcred.tf <<EOF
 # armcred.tf
 # Configure the Microsoft Azure RM Provider
 # Service Principal Display Name: $ARM_SP_DISPLAY_NAME
+# Service Principal Name: $ARM_SP_NAME
+# If you need to delete the service principal:
+#   az ad app delete --id $ARM_CLIENT_ID
 provider "azurerm" {
   subscription_id = "$ARM_SUBSCRIPTION_ID"
   tenant_id       = "$ARM_TENANT_ID"
@@ -58,9 +56,3 @@ provider "azurerm" {
   client_secret   = "$ARM_CLIENT_SECRET"
 }
 EOF
-cat armcred.tf
-
-# How to delete the service principal
-echo
-echo If you want to delete the service principal:
-echo az ad app delete --id $ARM_CLIENT_ID
