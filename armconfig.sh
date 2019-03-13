@@ -12,13 +12,10 @@
 
 # Get subscription id and tenant id
 echo
-echo Subscription id and tenant id...
-ACCOUNT_TSV=$(az account show --output tsv)
+echo Subscription id...
+ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 # fields: environmentName, id, isDefault, name, state, tenandId
-ARM_SUBSCRIPTION_ID=$(echo $ACCOUNT_TSV | cut -d ' ' -f 2)
-ARM_TENANT_ID=$(echo $ACCOUNT_TSV | cut -d ' ' -f 6)
 echo ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-echo ARM_TENANT_ID=$ARM_TENANT_ID
 
 # Create the app, service principal and role assignment
 echo
@@ -29,10 +26,12 @@ ARM_CLIENT_ID=$(echo $SP_TSV | cut -d ' ' -f 1)
 ARM_SP_DISPLAY_NAME=$(echo $SP_TSV | cut -d ' ' -f 2)
 ARM_SP_NAME=$(echo $SP_TSV | cut -d ' ' -f 3)
 ARM_CLIENT_SECRET=$(echo $SP_TSV | cut -d ' '  -f 4)
+ARM_TENANT_ID=$(echo $SP_TSV | cut -d ' '  -f 5)
 echo ARM_CLIENT_ID=$ARM_CLIENT_ID
 echo ARM_SP_DISPLAY_NAME=$ARM_SP_DISPLAY_NAME
 echo ARM_SP_NAME=$ARM_SP_NAME
 echo ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET
+echo ARM_TENANT_ID=$ARM_TENANT_ID
 
 # test login
 echo
